@@ -1,4 +1,4 @@
-import { registrarProducto } from "./src/models/producto-model.js"
+import { registrarProducto } from "./src/models/productoModel.js"
 
 try {
     const producto = {

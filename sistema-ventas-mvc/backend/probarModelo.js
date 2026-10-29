@@ -1,4 +1,4 @@
-import { listarProductos } from "./src/models/producto-model.js";
+import { listarProductos } from "./src/models/productoModel.js";
 
 try {
     const productos = await listarProductos();

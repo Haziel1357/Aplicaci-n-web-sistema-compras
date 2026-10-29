@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 
 const archivo = new URL("../data/productos.json", import.meta.url)
 
@@ -9,7 +9,7 @@ export const listarProductos = async () => {
 
 export const registrarProducto = async (producto) => {
     const productos = await listarProductos();
-    const nuevoId = listarProductos.length > 0 ? Math.max(...productos.map(p => p.id)) + 1 : 1;
+    const nuevoId = productos.length > 0 ? Math.max(...productos.map(p => p.id)) + 1 : 1;
     const nuevoProducto = {
         id: nuevoId,
         ...producto
@@ -18,9 +18,8 @@ export const registrarProducto = async (producto) => {
 
     await writeFile(
         archivo,
-        JSON.stringify(listarProductos, null, 2), // Estoy poniendo a JSON
+        JSON.stringify(productos, null, 2), // Estoy poniendo a JSON
         "utf-8"
     );
-
     return nuevoProducto;
 }

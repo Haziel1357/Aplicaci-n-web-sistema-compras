@@ -1,9 +1,10 @@
 import express from 'express';
-import productoRoutes from "./routers/producto-routes.js"
+import productoRoutes from "./routers/productoRoutes.js"
 
 const app = express();
 
-// parse requests with a Content-Type of application/json
+// analizar solicitudes con un Content-Type de application/json
+// Dispara el middleware que permite la traducción de datos enviados al servidor (JSON).
 app.use(express.json());
 
 app.get('/', (req, res) => {
@@ -13,3 +14,4 @@ app.get('/', (req, res) => {
 app.use("/api/productos", productoRoutes) // productoRoutes lo import desde la otra clase
 
 export default app;
+
