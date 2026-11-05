@@ -1,5 +1,5 @@
 //Controller maneja los req y res -- es teoría
-import {actualizarProductoPorId, buscarProductoPorId, listarProductos, registrarProducto} from "../models/productoModel.js"
+import {actualizarProductoPorId, buscarProductoPorId, listarProductos, registrarProducto, eliminarProductoPorId} from "../models/productoModel.js"
 
 export const obtenerProductos = async (req, res) => {
     try {
@@ -88,8 +88,8 @@ export const buscarProducto = async (req, res) => {
 // }
 
 
-
 // ACTUALIZAR UN PRODUCTO
+// ESTE ES EL QUE NOS PASÓ LA INGE
 
 export const modificarProducto = async (req, res) => {
   try {
@@ -152,21 +152,31 @@ export const eliminarProducto = async (req, res) => {
     try {
         const id = Number(req.params.id);
 
-        if (!Number.isInteger(id) || id <= 0){
+        if (!Number.isInteger(id) || id <= 0) {
             return res.status(400).json({
                 mensaje: "Ingrese un id válido"
             });
         };
 
-        const productoElim = await eliminarProductoPorId(id);
+        const productoEliminado = await eliminarProductoPorId(id);
 
+        if (!productoEliminado){
+            return res.status(404).json({
+                mensaje: "Producto no encontrado"
+            });
+        };
 
-        res.status(200).json(productoElim);
+        // res.status(200).json({
+        //     mensaje: "Producto eliminado correctamente"
+        // });
+
+        res.status(200).json(productoEliminado);
 
     }catch(error) {
         console.error(error);
+
         res.status(500).json({
             mensaje: "Error al intentar eliminar el producto"
         });
-    }
-}
+    };
+};

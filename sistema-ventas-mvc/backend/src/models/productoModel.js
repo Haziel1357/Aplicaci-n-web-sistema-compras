@@ -58,8 +58,47 @@ export const actualizarProductoPorId = async (id, datosActualizados) => {
 
 
 //Eliminar un producto por el id
+// Mi forma
+
+// export const eliminarProductoPorId = async (id) => {
+//     const productos = await listarProductos();
+//     const indice = productos.findIndex(p => p.id === id);
+
+//     if (indice === -1){
+//         return null;
+//     }
+
+//     const [productoEliminado] = productos.splice(indice, 1); // [Para sacar el arreglo solo 1], splice (valor inicial, valor al que quiero cambiar)
+
+//     await writeFile(
+//         archivo,
+//         JSON.stringify(productos, null, 2),
+//         "utf8"
+//     );
+
+    
+//     return productoEliminado;
+// }
+
+
+//Eliminar un producto por el id
+// Forma de la inge
+
 export const eliminarProductoPorId = async (id) => {
-    const productos = listarProductos();
-    const productoEliminado = productos.find(p => p.id === id);
-    return productoEliminado;
+    const productos = await listarProductos();
+    const producto = productos.find(p => p.id === id);
+
+    if(!producto){
+        return false;
+    };
+
+    const productosActualizados = productos.filter(p => p.id !== id);
+
+    await writeFile(
+        archivo,
+        JSON.stringify(productosActualizados, null, 2),
+        "utf8"
+    );
+
+    return producto;
 }

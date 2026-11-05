@@ -22,11 +22,5 @@
     "nombre": "Monitor Samsung",
     "precio": 180,
     "stock": 12
-  },
-  {
-    "id": 5,
-    "nombre": "Monitor Samsung Ultra Plus",
-    "precio": 250,
-    "stock": 15
   }
 ]
