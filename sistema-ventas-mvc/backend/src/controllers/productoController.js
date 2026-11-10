@@ -1,95 +1,117 @@
-//Controller maneja los req y res -- es teoría
-import {actualizarProductoPorId, buscarProductoPorId, listarProductos, registrarProducto} from "../models/productoModel.js"
+import {
+  listarProductos,
+  registrarProducto,
+  buscarProductoPorId,
+  buscarProductosPorNombre,
+  actualizarProducto,
+  eliminarProducto
+}
+  from "../models/productoModel.js";
+
+/*export const obtenerProductos = async (req, res) => {
+  try {
+    const productos = await listarProductos();
+    res.json(productos);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      mensaje: "Error al obtener productos"
+    });
+  }
+};*/
 
 export const obtenerProductos = async (req, res) => {
-    try {
-        const productos = await listarProductos();
-        res.json(productos);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            mensaje: "Error al obtener los productos"
-        });
-    };
-};
+  try {
+    const { nombre } = req.query;
 
-// export const crearProducto = async (req, res) => {
-//     try {
-//         const producto  = await registrarProducto(req.body);
-//         res.json(producto);
-//     }catch (error){
-//         console.error(error);
-//         res.status(500).json({
-//             mensaje: "Error al ingresar el producto"
-//         });
-//     };
-// };
+    if (nombre !== undefined) {
+      if (typeof nombre !== "string" || !nombre.trim()) {
+        return res.status(400).json({
+          mensaje: "Debe proporcionar un nombre válido."
+        });
+      }
+      const productos = await buscarProductosPorNombre(nombre);
+      if (productos.length === 0) {
+        return res.status(404).json({
+          mensaje: "No se encontraron productos."
+        });
+      }
+
+      return res.status(200).json(productos);
+    }
+
+    const productos = await listarProductos();
+
+    return res.status(200).json(productos);
+
+  } catch (error) {
+    return res.status(500).json({
+      mensaje: "Error al consultar productos."
+    });
+  }
+};
 
 export const crearProducto = async (req, res) => {
-    try {
-        const { nombre, precio, stock } = req.body;
+  try {
+    const { nombre, precio, stock } = req.body ?? {};
 
-        if (!nombre || precio === undefined || stock === undefined) {
-            return res.status(400).json({
-                mensaje: "nombre, precio y stock son obligatorios"
-            });
-        }
-
-        const nuevoProducto = await registrarProducto({ nombre, precio, stock });
-        res.status(201).json(nuevoProducto);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ mensaje: "Error al registrar el producto" });
+    if (
+      typeof nombre !== "string" ||
+      nombre.trim() === "" ||
+      typeof precio !== "number" ||
+      !Number.isFinite(precio) ||
+      precio <= 0 ||
+      !Number.isInteger(stock) ||
+      stock < 0
+    ) {
+      return res.status(400).json({
+        mensaje: "Datos del producto inválidos"
+      });
     }
+
+    const nuevoProducto = await registrarProducto({
+      nombre: nombre.trim(),
+      precio,
+      stock
+    });
+
+    res.status(201).json(nuevoProducto);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      mensaje: "Error al registrar producto"
+    });
+  }
 };
 
+export const obtenerProductoPorId = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
 
-export const buscarProducto = async (req, res) => {
-    try {
-        const id = Number(req.params.id); // Porque todo lo que me trae es un string 
-        if (!Number.isInteger(id) || id <= 0){
-            return res.status(400).json({
-                mensaje: "Ingrese un id válido"
-            });
-        };
-        
-        const producto = await buscarProductoPorId(id);
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({
+        mensaje: "ID inválido"
+      });
+    }
 
-        if(!producto){
-            return res.status(404).json({
-                mensaje: "Producto no encontrado"
-            });
-        };
+    const producto = await buscarProductoPorId(id);
 
-        res.status(200).json(producto);
-    }catch (error){
-        console.error(error);
-        res.status(500).json({
-            mensaje: "Error al registrar el producto"
-        });
-    };
-}
+    if (!producto) {
+      return res.status(404).json({
+        mensaje: "Producto no encontrado"
+      });
+    }
 
-// export const actualizarProducto = async (req, res) => {
-//     try {
-//         const {nombre, precio, stock} = req.body;
+    res.status(200).json(producto);
 
-//         if (!nombre || precio === undefined || stock === undefined){
-//             return res.status(400).json({
-//                 mensaje: "Todos los campos son obligatorios"
-//             });
-//         };
+  } catch (error) {
+    console.error(error);
 
-//         const producoEncontrado = await actualizarProductoPorId();
-
-//     }catch (error){
-
-//     };
-// }
-
-
-
-// ACTUALIZAR UN PRODUCTO
+    res.status(500).json({
+      mensaje: "Error al buscar producto"
+    });
+  }
+};
 
 export const modificarProducto = async (req, res) => {
   try {
@@ -116,7 +138,7 @@ export const modificarProducto = async (req, res) => {
       });
     }
 
-    const producto = await actualizarProductoPorId(id, {
+    const producto = await actualizarProducto(id, {
       nombre: nombre.trim(),
       precio,
       stock
@@ -139,34 +161,62 @@ export const modificarProducto = async (req, res) => {
   }
 };
 
+export const borrarProducto = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
 
-
-
-
-
-
-
-
-
-export const eliminarProducto = async (req, res) => {
-    try {
-        const id = Number(req.params.id);
-
-        if (!Number.isInteger(id) || id <= 0){
-            return res.status(400).json({
-                mensaje: "Ingrese un id válido"
-            });
-        };
-
-        const productoElim = await eliminarProductoPorId(id);
-
-
-        res.status(200).json(productoElim);
-
-    }catch(error) {
-        console.error(error);
-        res.status(500).json({
-            mensaje: "Error al intentar eliminar el producto"
-        });
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({
+        mensaje: "ID inválido"
+      });
     }
-}
+
+    const eliminado = await eliminarProducto(id);
+
+    if (!eliminado) {
+      return res.status(404).json({
+        mensaje: "Producto no encontrado"
+      });
+    }
+
+    res.status(200).json({
+      mensaje: "Producto eliminado correctamente"
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      mensaje: "Error al eliminar producto"
+    });
+  }
+};
+
+/*
+export const buscarProductos = async (req, res) => {
+  const { nombre } = req.query;
+
+  if (!nombre || !nombre.trim()) {
+    return res.status(400).json({
+      mensaje: "Debe proporcionar un nombre para buscar."
+    });
+  }
+
+  try {
+    const productos = await buscarProductosPorNombre(nombre);
+
+    if (productos.length === 0) {
+      return res.status(404).json({
+        mensaje: "No se encontraron productos."
+      });
+    }
+
+    return res.status(200).json(productos);
+
+  } catch (error) {
+    return res.status(500).json({
+      mensaje: "Error al buscar productos."
+    });
+  }*/
+
+

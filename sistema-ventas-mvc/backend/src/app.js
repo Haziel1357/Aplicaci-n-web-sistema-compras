@@ -1,17 +1,24 @@
 import express from 'express';
-import productoRoutes from "./routers/productoRoutes.js"
+import cors from "cors";
+import productoRoutes from './routes/productoRoutes.js';
 
 const app = express();
+// Permitir solicitudes desde nuestro frontend
+app.use(cors({
+  origin: "http://localhost:5173"
+}));
 
-// analizar solicitudes con un Content-Type de application/json
-// Dispara el middleware que permite la traducción de datos enviados al servidor (JSON).
+// Configurar el middleware JSON, interpretar cuerpos de json
 app.use(express.json());
 
 app.get('/', (req, res) => {
-  res.send('API sistema de ventas mvc funcionando');
+  res.send("API Sistema de Ventas MVC");
 });
 
-app.use("/api/productos", productoRoutes) // productoRoutes lo import desde la otra clase
+// Registrar las rutas
+app.use("/api/productos", productoRoutes);
 
 export default app;
+
+
 
