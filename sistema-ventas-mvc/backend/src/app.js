@@ -4,7 +4,7 @@ import productoRoutes from './routes/productoRoutes.js';
 
 const app = express();
 // Permitir solicitudes desde nuestro frontend
-app.use(cors({
+app.use(cors({ // el cors configura los cors
   origin: "http://localhost:5173"
 }));
 
@@ -19,6 +19,4 @@ app.get('/', (req, res) => {
 app.use("/api/productos", productoRoutes);
 
 export default app;
-
-
 

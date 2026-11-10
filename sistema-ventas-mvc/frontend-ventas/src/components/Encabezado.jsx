@@ -3,7 +3,7 @@ function Encabezado() {
     <header>
         <h1>SISTEMA DE VENTAS</h1>
         <h2>Gestión de ventas</h2>
-        <p>Frontend desarrollo con react y Vite por: Haziel Moncaayo</p>
+        <p>Frontend desarrollo con react y Vite por: Haziel Moncayo</p>
     </header>
     );
 }
