@@ -34,5 +34,11 @@
     "nombre": "Monitor Samsung",
     "precio": 180,
     "stock": 12
+  },
+  {
+    "id": 7,
+    "nombre": "Audífonos",
+    "precio": 5.5,
+    "stock": 10
   }
 ]

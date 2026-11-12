@@ -1,12 +1,12 @@
 import { useState } from "react";
 
-function formularioProducto ({onRegistrar})  {
-    cosnt [nombre, setNombre] = useState("");
-    cosnt [precio, setprecio] = useState("");
-    cosnt [stock, setstock] = useState("");
+function FormularioProducto ({onRegistrar})  {
+    const [nombre, setNombre] = useState("");
+    const [precio, setPrecio] = useState("");
+    const [stock, setStock] = useState("");
 
-    const manejarEnvio = (event) => {
-        event.preventDefaut(); // Evitar que se recargue nuevamente la página al enviar el formulario
+    const manejarEnvio = async (event) => {
+        event.preventDefault(); // Evitar que se recargue nuevamente la página al enviar el formulario
 
         const nuevoProducto = {
             nombre: nombre.trim(),
@@ -14,7 +14,13 @@ function formularioProducto ({onRegistrar})  {
             stock: Number(stock)
         };
 
-        onRegistrar(nuevoProducto);
+        const registrado = await onRegistrar(nuevoProducto);
+
+        if (registrado){
+            setNombre("");
+            setPrecio("");
+            setStock("");
+        }; 
     };
 
     return (
@@ -37,7 +43,7 @@ function formularioProducto ({onRegistrar})  {
                 value = {precio}
                 min = "0.01"
                 step = "0.01"
-                onChange = {(event) => setprecio(event.target.value)} 
+                onChange = {(event) => setPrecio(event.target.value)} 
                 required
                 />
             </div>
@@ -61,4 +67,7 @@ function formularioProducto ({onRegistrar})  {
     )
 }
 
-export default formularioProducto;
+export default FormularioProducto;
+
+
+
