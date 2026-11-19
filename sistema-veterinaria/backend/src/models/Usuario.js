@@ -24,7 +24,7 @@ const usuarioSchema = new mongoose.Schema(
         },
         rol: {
             type: String,
-            enum: ["administrator", "veterianario"],
+            enum: ["administrator", "veterinario"],
             default: "veterinario"
         },
         estado: {
