@@ -1,5 +1,8 @@
 import Usuario from "../models/Usuario.js";
 import generarToken from "../utils/generarToken.js";
+import crypto from "node:crypto";
+import enviarCorreo from "../utils/enviarCorreo.js";
+
 
 const registrarUsuario = async (req, res) => {
   try {
@@ -13,16 +16,14 @@ const registrarUsuario = async (req, res) => {
     } = req.body;
 
     const campos = {
-      nombre,
-      apellido,
-      direccion,
-      celular,
-      correo,
-      password
+      nombre, apellido, direccion,
+      celular, correo, password
     };
 
     const datosValidos = Object.values(campos).every(
-      valor => typeof valor === "string" && valor.trim() !== ""
+      valor =>
+        typeof valor === "string" &&
+        valor.trim() !== ""
     );
 
     if (!datosValidos) {
@@ -43,6 +44,17 @@ const registrarUsuario = async (req, res) => {
       });
     }
 
+    const token = crypto.randomBytes(32).toString("hex");
+
+    const tokenHash = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+
+    const expiracion = new Date(
+      Date.now() + 30 * 60 * 1000
+    );
+
     const usuario = await Usuario.create({
       nombre,
       apellido,
@@ -50,19 +62,34 @@ const registrarUsuario = async (req, res) => {
       celular,
       correo: correoNormalizado,
       password,
-      rol: "veterinario"
+      rol: "veterinario",
+      correoConfirmado: false,
+      tokenConfirmacion: tokenHash,
+      tokenConfirmacionExpira: expiracion
     });
 
-    res.status(201).json({
-      mensaje: "Usuario registrado correctamente",
+    const enlace = `${process.env.FRONTEND_URL}/confirm/${token}`;
+
+    try {
+      await enviarCorreo(usuario.correo, enlace);
+    } catch (errorCorreo) {
+      console.error("Error al enviar correo:", errorCorreo);
+
+      return res.status(503).json({
+        mensaje:
+          "La cuenta fue creada, pero no se pudo enviar el correo de confirmación. Contacta al administrador para reintentar el envío."
+      });
+    }
+
+    return res.status(201).json({
+      mensaje:
+        "Usuario registrado. Revisa tu correo para confirmar tu cuenta.",
       usuario: {
         id: usuario._id,
         nombre: usuario.nombre,
         apellido: usuario.apellido,
-        direccion: usuario.direccion,
-        celular: usuario.celular,
         correo: usuario.correo,
-        rol: usuario.rol
+        correoConfirmado: usuario.correoConfirmado
       }
     });
 
@@ -79,13 +106,14 @@ const registrarUsuario = async (req, res) => {
       });
     }
 
-    console.error("Error al registrar:", error);
+    console.error("Error al registrar usuario:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       mensaje: "Error al registrar usuario"
     });
   }
 };
+
 
 const iniciarSesion = async (req, res) => {
   try {
@@ -118,6 +146,12 @@ const iniciarSesion = async (req, res) => {
     if (!passwordCorrecto) {
       return res.status(401).json({
         mensaje: "Credenciales incorrectas"
+      });
+    }
+
+    if (!usuario.correoConfirmado) {
+      return res.status(403).json({
+        mensaje: "Debes confirmar tu correo electrónico antes de iniciar sesión"
       });
     }
 
@@ -168,8 +202,67 @@ const obtenerPerfil = async (req, res) => {
   });
 };
 
+const confirmarCuenta = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    if (!/^[a-f0-9]{64}$/.test(token || "")) {
+      return res.status(400).json({
+        mensaje: "Enlace de confirmación inválido"
+      });
+    }
+
+    const tokenHash = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+
+    const usuario = await Usuario.findOneAndUpdate(
+      {
+        tokenConfirmacion: tokenHash,
+        tokenConfirmacionExpira: {
+          $gt: new Date()
+        },
+        correoConfirmado: false
+      },
+      {
+        $set: {
+          correoConfirmado: true
+        },
+        $unset: {
+          tokenConfirmacion: "",
+          tokenConfirmacionExpira: ""
+        }
+      },
+      {
+        new: true,
+        runValidators: true
+      }
+    );
+
+    if (!usuario) {
+      return res.status(400).json({
+        mensaje: "El enlace es inválido, ya fue usado o ha expirado"
+      });
+    }
+
+    return res.status(200).json({
+      mensaje: "Correo confirmado correctamente"
+    });
+
+  } catch (error) {
+    console.error("Error al confirmar correo:", error);
+
+    return res.status(500).json({
+      mensaje: "Error al confirmar la cuenta"
+    });
+  }
+};
+
+
 export {
   registrarUsuario,
   iniciarSesion,
-  obtenerPerfil
+  obtenerPerfil,
+  confirmarCuenta
 };

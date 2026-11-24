@@ -1,5 +1,5 @@
 import express from "express";
-import { registrarUsuario, iniciarSesion, obtenerPerfil } from "../controllers/authController.js";
+import { registrarUsuario, iniciarSesion, obtenerPerfil, confirmarCuenta } from "../controllers/authController.js";
 import verificarToken from "../middleware/authMiddleware.js";
 import autorizarRoles from "../middleware/roleMiddleware.js";
 
@@ -15,5 +15,7 @@ router.get("/admin", verificarToken, autorizarRoles("administrador"),
                 mensaje: "Bienvenido al área de administración"
             });
         });
+
+router.post("/confirm/:token", confirmarCuenta);
 
 export default router;
